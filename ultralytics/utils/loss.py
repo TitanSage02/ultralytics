@@ -40,12 +40,13 @@ class VarifocalLoss(nn.Module):
 class FocalLoss(nn.Module):
     """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
 
-    def __init__(self, gamma=1.5, alpha=0.25, weights=None):
+    def __init__(self, gamma=1.5, alpha=0.15, weights=None):
         """Initializer for FocalLoss class with parameters gamma, alpha, and weights."""
         super().__init__()
         self.gamma = gamma
         self.alpha = alpha
         self.weights = weights  # weights for each class
+        print("FocalLoss is using ...") # debodage
 
     def forward(self, pred, label):
         """Calculates focal loss for the predictions and labels."""
