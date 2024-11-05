@@ -46,7 +46,7 @@ class FocalLoss(nn.Module):
         self.gamma = gamma
         self.alpha = alpha
         self.weights = weights  # weights for each class
-        print("FocalLoss is using ...") # debodage
+        # print("FocalLoss is using ...") # debodage
 
     def forward(self, pred, label):
         """Calculates focal loss for the predictions and labels."""
