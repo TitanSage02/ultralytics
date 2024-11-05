@@ -40,26 +40,42 @@ class VarifocalLoss(nn.Module):
 class FocalLoss(nn.Module):
     """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
 
-    def __init__(self):
-        """Initializer for FocalLoss class with no parameters."""
+    def __init__(self, gamma=1.5, alpha=0.25, weights=None):
+        """Initializer for FocalLoss class with parameters gamma, alpha, and weights."""
         super().__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+        self.weights = weights  # weights for each class
 
-    @staticmethod
-    def forward(pred, label, gamma=1.5, alpha=0.25):
-        """Calculates and updates confusion matrix for object detection/classification tasks."""
+    def forward(self, pred, label):
+        """Calculates focal loss for the predictions and labels."""
+        # Calculate the base loss
         loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
-        # p_t = torch.exp(-loss)
-        # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
 
-        # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
-        pred_prob = pred.sigmoid()  # prob from logits
+        # Convert logits to probabilities
+        pred_prob = pred.sigmoid()
+        
+        # Calculate p_t
         p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
-        modulating_factor = (1.0 - p_t) ** gamma
+        
+        # Calculate the modulation factor
+        modulating_factor = (1.0 - p_t) ** self.gamma
+        
+        # Apply the modulation factor to the loss
         loss *= modulating_factor
-        if alpha > 0:
-            alpha_factor = label * alpha + (1 - label) * (1 - alpha)
+        
+        # Apply the alpha factor if necessary
+        if self.alpha > 0:
+            alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
             loss *= alpha_factor
+        
+        # Apply class weights if provided
+        if self.weights is not None:
+            loss *= self.weights
+        
+        # Return the average loss
         return loss.mean(1).sum()
+
 
 
 class DFLoss(nn.Module):
